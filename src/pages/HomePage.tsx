@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { ScheduleCalendar } from '../components/ScheduleCalendar';
 import { ChatInterface } from '../components/ChatInterface';
 import { WeeklySchedule } from '../components/WeeklySchedule';
+import { LoadingSpinner } from '../components/loadingSpinner';
 import { MessageCircle } from 'lucide-react';
+import { useSchedule } from '../components/hooks/useSchedule';
 
 export function HomePage() {
   const [showChat, setShowChat] = useState(false);
+  const { scheduleData, loading, error } = useSchedule();
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Employee Schedule</h1>
         <div className="flex space-x-4">
           <button 
@@ -25,17 +28,28 @@ export function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <ScheduleCalendar />
-          <WeeklySchedule />
+      {loading && <LoadingSpinner />}
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg">
+          Error: {error}
         </div>
-        {showChat && (
-          <div className="lg:fixed lg:right-8 lg:top-24 lg:w-[400px]">
-            <ChatInterface />
+      )}
+
+      {scheduleData && (
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-1/4">
+            <ScheduleCalendar />
           </div>
-        )}
-      </div>
+          <div className="lg:flex-1">
+            <WeeklySchedule scheduleData={scheduleData} />
+          </div>
+          {showChat && (
+            <div className="lg:w-[400px]">
+              <ChatInterface />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,31 +1,17 @@
 import React from 'react';
-import { format, addDays, startOfWeek } from 'date-fns';
+import { formatTime, getWeekDays, calculateShiftPosition, format } from '../utils/dataUtils';
+import { Shift } from '../types/schedule';
 
-interface Shift {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  start: string;
-  end: string;
+interface WeeklyScheduleProps {
+  scheduleData: Shift[];
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const DAYS = Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(new Date()), i));
+const DAYS = getWeekDays();
 
-export function WeeklySchedule() {
-  // Mock data - replace with real data later
-  const shifts: Shift[] = [
-    {
-      id: '1',
-      employeeId: '1',
-      employeeName: 'John Doe',
-      start: '2024-03-18T09:00:00',
-      end: '2024-03-18T17:00:00',
-    },
-  ];
-
+export function WeeklySchedule({ scheduleData }: WeeklyScheduleProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
+    <div className="bg-white rounded-lg shadow-lg overflow-x-auto mt-6">
       <div className="min-w-[800px]">
         {/* Header */}
         <div className="grid grid-cols-8 border-b">
@@ -42,36 +28,34 @@ export function WeeklySchedule() {
           {HOURS.map((hour) => (
             <div key={hour} className="grid grid-cols-8 border-b">
               <div className="p-2 text-sm text-gray-500">
-                {format(new Date().setHours(hour, 0), 'ha')}
+                {formatTime(new Date().setHours(hour, 0))}
               </div>
               {DAYS.map((day) => (
                 <div
                   key={`${day}-${hour}`}
-                  className="p-2 border-l min-h-[3rem] relative"
-                >
-                  {/* Render shifts here */}
-                </div>
+                  className="p-2 border-l min-h-[3rem] relative hover:bg-gray-50"
+                />
               ))}
             </div>
           ))}
 
           {/* Shifts overlay */}
-          <div className="absolute inset-0 pointer-events-none">
-            {shifts.map((shift) => (
-              <div
-                key={shift.id}
-                className="absolute bg-blue-100 border border-blue-300 rounded p-2 text-sm"
-                style={{
-                  // Position and size would be calculated based on shift times
-                  left: '12.5%',
-                  top: '37.5%',
-                  width: '12.5%',
-                  height: '33.33%',
-                }}
-              >
-                {shift.employeeName}
-              </div>
-            ))}
+          <div className="absolute inset-0">
+            {scheduleData.map((shift) => {
+              const position = calculateShiftPosition(shift);
+              return (
+                <div
+                  key={shift.id}
+                  className="absolute bg-blue-100 border border-blue-300 rounded p-2 text-sm cursor-pointer hover:bg-blue-200 transition-colors"
+                  style={position}
+                >
+                  <div className="font-medium">{shift.employeeName}</div>
+                  <div className="text-xs text-gray-600">
+                    {formatTime(shift.start)} - {formatTime(shift.end)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
